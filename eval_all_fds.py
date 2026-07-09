@@ -966,8 +966,14 @@ def main_gen_only(args):
     # When set, each class in the list is repeated --num_image_per_class times
     # and the total overrides --num_images.
     global_classes = None
-    if args.class_id_list:
-        class_ids = [int(c.strip()) for c in args.class_id_list.split(",") if c.strip() != ""]
+    raw_list = args.class_id_list.strip() if args.class_id_list else ""
+    if raw_list:
+        class_ids = [int(c.strip()) for c in raw_list.split(",") if c.strip() != ""]
+        if not class_ids:
+            raise ValueError(
+                "--class_id_list is set but parsed to an empty list. "
+                "Check for stray quotes or empty env var (e.g. unset $CLASS_LIST)."
+            )
         bad = [c for c in class_ids if not (0 <= c < args.num_classes)]
         assert not bad, f"class ids out of range [0,{args.num_classes}): {bad}"
         per_class = max(1, args.num_image_per_class)
@@ -977,6 +983,11 @@ def main_gen_only(args):
         args.num_images = len(global_classes)
         logger.info(f"Class-id-list mode: {len(class_ids)} classes x {per_class} imgs "
                     f"= {args.num_images} total images")
+    elif args.num_image_per_class > 1:
+        raise ValueError(
+            "--num_image_per_class > 1 requires --class_id_list to be set. "
+            "Did you forget to export CLASS_LIST? (empty string is treated as unset)"
+        )
 
     logger.info(f"Gen-only grid: {len(cfg_list)} cfgs x {len(ema_labels)} emas "
                 f"= {n_total} combos, {args.num_images} images each")
