@@ -5,6 +5,7 @@ work_dirs/**
 !work_dirs/eval_results/gen_only/JiT-H_FD-SIM-class-sample/
 !work_dirs/eval_results/gen_only/JiT-H_FD-SIM-class-sample/gen_images/
 !work_dirs/eval_results/gen_only/JiT-H_FD-SIM-class-sample/gen_images/**
+work_dirs/eval_results/gen_only/JiT-H_FD-SIM-class-sample/gen_images/ema*
 logs/
 wandb/
 tmp/
