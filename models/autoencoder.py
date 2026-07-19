@@ -28,7 +28,7 @@ def local_device():
 
 
 class DiffusersAutoencoderKL(nn.Module):
-    def __init__(self, name=None, torch_dtype=torch.float32):
+    def __init__(self, name=None, torch_dtype=torch.float32, local_path=None):
         super().__init__()
         if name not in MODEL_MAPPING:
             raise ValueError(f"unknown VAE name: {name}")
@@ -36,13 +36,16 @@ class DiffusersAutoencoderKL(nn.Module):
         model_config = MODEL_MAPPING[name]
         rank = torch.distributed.get_rank() if torch.distributed.is_initialized() else 0
 
+        # Use local_path if provided, otherwise use HF repo name
+        model_id = local_path if local_path else model_config["name"]
+
         if rank == 0:
-            logger.info(f"[VAE] Rank 0: loading {name} from {model_config['name']}")
+            logger.info(f"[VAE] Rank 0: loading {name} from {model_id}")
             load_kwargs = dict(torch_dtype=torch_dtype, local_files_only=True)
             if "subfolder" in model_config:
                 load_kwargs["subfolder"] = model_config["subfolder"]
             self.vae: AutoencoderKL = AutoencoderKL.from_pretrained(
-                model_config["name"], **load_kwargs,
+                model_id, **load_kwargs,
             )
         else:
             logger.info(f"[VAE] Rank {rank}: creating {name} from config")
@@ -50,7 +53,7 @@ class DiffusersAutoencoderKL(nn.Module):
             if "subfolder" in model_config:
                 config_kwargs["subfolder"] = model_config["subfolder"]
             config_kwargs["local_files_only"] = True
-            config = AutoencoderKL.load_config(model_config["name"], **config_kwargs)
+            config = AutoencoderKL.load_config(model_id, **config_kwargs)
             self.vae: AutoencoderKL = AutoencoderKL.from_config(config).to(dtype=torch_dtype)
         for param in self.vae.parameters():
             param.requires_grad = False

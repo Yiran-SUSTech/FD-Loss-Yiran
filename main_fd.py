@@ -449,6 +449,9 @@ def get_args_parser():
     parser.add_argument("--class_of_interest", default=[207, 360, 387, 974, 88, 979, 417, 279],
                         type=int, nargs="+")
     parser.add_argument("--force_class_of_interest", action="store_true")
+    parser.add_argument("--vae_path", default=None, type=str,
+                        help="Local path to the SDVAE model directory. "
+                             "If set, overrides the default HF repo name for tokenizer loading.")
     parser.add_argument("--class_id_list", default=None, type=str,
                         help="Comma-separated ImageNet class ids to sample, e.g. '4,7,10'. "
                              "When set, overrides --num_images: each class gets "
