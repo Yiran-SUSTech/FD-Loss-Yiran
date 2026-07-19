@@ -111,7 +111,8 @@ def create_tokenizer(args):
     logger.info(f"creating tokenizer: {args.tokenizer}")
 
     if args.tokenizer in models.VAE_models:
-        tok = models.DiffusersAutoencoderKL(name=args.tokenizer)
+        vae_path = getattr(args, 'vae_path', None)
+        tok = models.DiffusersAutoencoderKL(name=args.tokenizer, local_path=vae_path)
     else:
         raise ValueError(f"unsupported tokenizer {args.tokenizer}")
 
